@@ -9,9 +9,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -23,13 +22,15 @@ public class AmountByCategoryService {
     private final AmountByCategoryMapper mapper;
 
     public List<AmountByCategory> getAmountsForCategoryByUser(Long userNo) {
-        return Optional.ofNullable(mapper.selectAllByUser(userNo))
-                .orElseThrow(NoSuchElementException::new);
+        List<AmountByCategory> amounts = mapper.selectAllByUser(userNo);
+        return amounts == null ? Collections.emptyList() : amounts;
     }
 
     public String calculateTopCategory(Long userNo) {
         List<AmountByCategory> amountByCategories = getAmountsForCategoryByUser(userNo);
-
+        if (amountByCategories.isEmpty()) {
+            return null;
+        }
         String topCategory = null;
         double maxPoint = 0;
         for(AmountByCategory amountByCategory : amountByCategories) {

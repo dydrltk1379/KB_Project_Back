@@ -1,7 +1,7 @@
 package com.finns.finance.service;
 
+import com.finns.common.exception.ResourceNotFoundException;
 import com.finns.finance.dto.CardDTO;
-import com.finns.finance.dto.Finance;
 import com.finns.finance.dto.FinanceCount;
 import com.finns.finance.dto.FinanceDTO;
 import com.finns.finance.mapper.FinanceMapper;
@@ -11,9 +11,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -23,45 +22,68 @@ import java.util.Optional;
 public class FinanceService {
     private final FinanceMapper financeMapper;
 
-    // 예금 상품 리스트 반환
     public List<FinanceDTO> getDepositList() {
         return financeMapper.getDepositProducts();
     }
 
-    // 적금 상품 리스트 반환
-    public List<FinanceDTO> getinstallList() {
+    public List<FinanceDTO> getSavingsList() {
         return financeMapper.getinstallProducts();
     }
 
-    // 금융상품 한개 검색
-    public FinanceDTO getinstallList(Long no) {return financeMapper.selectOneProduct(no);}
-
-    // 금융상품 로고 url 검색
-
-    //가장 높은 최고금리 예금
-    public FinanceDTO getHighestIntrRateForDeposit() {
-        return financeMapper.selectHighestIntrRateForDeposit();
+    public FinanceDTO getProductByNo(Long financeProductNo) {
+        FinanceDTO product = financeMapper.selectOneProduct(financeProductNo);
+        if (product == null) {
+            throw new ResourceNotFoundException("금융상품을 찾을 수 없습니다.");
+        }
+        return product;
     }
-    //가장 높은 최고금리 적금
+
+    public FinanceDTO getHighestIntrRateForDeposit() {
+        FinanceDTO product = financeMapper.selectHighestIntrRateForDeposit();
+        if (product == null) {
+            throw new ResourceNotFoundException("예금 상품을 찾을 수 없습니다.");
+        }
+        return product;
+    }
+
     public FinanceDTO getHighestIntrRateForSavings() {
-        return financeMapper.selectHighestIntrRateForSavings();
+        FinanceDTO product = financeMapper.selectHighestIntrRateForSavings();
+        if (product == null) {
+            throw new ResourceNotFoundException("적금 상품을 찾을 수 없습니다.");
+        }
+        return product;
     }
 
     public FinanceCount getTopDepositProductByUsers() {
-        return financeMapper.selectTopDepositProductByUsers();
+        FinanceCount topProduct = financeMapper.selectTopDepositProductByUsers();
+        if (topProduct == null) {
+            throw new ResourceNotFoundException("저장된 예금 상품이 없습니다.");
+        }
+        return topProduct;
     }
 
     public FinanceCount getTopSavingsProductByUsers() {
-        return financeMapper.selectTopSavingsProductByUsers();
+        FinanceCount topProduct = financeMapper.selectTopSavingsProductByUsers();
+        if (topProduct == null) {
+            throw new ResourceNotFoundException("저장된 적금 상품이 없습니다.");
+        }
+        return topProduct;
     }
-    // 카드 상품 리스트 반환
-    public List<CardDTO> getCardList() {return financeMapper.getCardProducts();}
 
-    // 카드 상품 한개 검색
-    public CardDTO getCardList(Long no) {return financeMapper.selectOneCard(no);}
+    public List<CardDTO> getCardList() {
+        return financeMapper.getCardProducts();
+    }
+
+    public CardDTO getCardByNo(Long cardNo) {
+        CardDTO card = financeMapper.selectOneCard(cardNo);
+        if (card == null) {
+            throw new ResourceNotFoundException("카드 상품을 찾을 수 없습니다.");
+        }
+        return card;
+    }
 
     public List<FinanceDTO> getProductsByUser(Long userNo) {
-        return Optional.of(financeMapper.selectProductsByUser(userNo))
-                .orElseThrow(NoSuchElementException::new);
+        List<FinanceDTO> products = financeMapper.selectProductsByUser(userNo);
+        return products == null ? Collections.emptyList() : products;
     }
 }

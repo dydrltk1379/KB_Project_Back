@@ -5,15 +5,17 @@ import com.finns.card.dto.Card;
 import com.finns.card.dto.RecommendNCardRequestDTO;
 import com.finns.card.mapper.CardMapper;
 import com.finns.card.pagination.PageResponse;
-import com.finns.finance.dto.CardDTO;
-import com.finns.finance.dto.FinanceDTO;
+import com.finns.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,58 +24,64 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class CardService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_RECOMMEND_COUNT = 20;
+
     private final CardMapper cardMapper;
     private final AmountByCategoryService amountByCategoryService;
 
     public PageResponse<Card> getCards(int page, int size) {
-        int offset = (page - 1) * size; // 페이지 수에 따라 오프셋 계산
-        List<Card> cards = cardMapper.selectAllCards(offset, size);
+        if (page < 1) {
+            throw new IllegalArgumentException("page는 1 이상이어야 합니다.");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("size는 1 이상 " + MAX_PAGE_SIZE + " 이하여야 합니다.");
+        }
 
-        long totalElements = cardMapper.countCards(); // 총 카드 수를 가져옴
+        int offset = (page - 1) * size;
+        List<Card> cards = cardMapper.selectAllCards(offset, size);
+        long totalElements = cardMapper.countCards();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
         return new PageResponse<>(cards, totalPages, totalElements, size, page);
     }
 
-    public Card getCardById(long card_no) {
-        Card card = cardMapper.selectCardById(card_no);
+    public Card getCardById(long cardNo) {
+        Card card = cardMapper.selectCardById(cardNo);
+        if (card == null) {
+            throw new ResourceNotFoundException("카드를 찾을 수 없습니다.");
+        }
         return card;
     }
 
     public List<Card> getRecommendNCards(Long userNo, int num) {
+        if (num < 1 || num > MAX_RECOMMEND_COUNT) {
+            throw new IllegalArgumentException("num은 1 이상 " + MAX_RECOMMEND_COUNT + " 이하여야 합니다.");
+        }
+
         String topCategoryByUser = amountByCategoryService.calculateTopCategory(userNo);
+        if (topCategoryByUser == null) {
+            return Collections.emptyList();
+        }
+
         String cardCategory = matchingCategory(topCategoryByUser);
         RecommendNCardRequestDTO recommendNCardRequestDTO = new RecommendNCardRequestDTO(cardCategory, num);
-
-        List<Card> recommendCards = cardMapper.selectRecommendNCards(recommendNCardRequestDTO);
-        return recommendCards;
+        return cardMapper.selectRecommendNCards(recommendNCardRequestDTO);
     }
 
     private String matchingCategory(String categoryByUser) {
-        //1. 식비 · 카페 -> 식비
-        //2. 쇼핑 -> 여가
-        //3. 미용 -> 여가
-        //4. 의료
-        //5. 통신
-        //6. 교통
-        //7. 문화 · 여행 -> 여가
-        //8. 교육
-        //9. 술 · 유흥 -> 식비
+        Map<String, String> categoryMap = new HashMap<>();
+        categoryMap.put("식비 · 카페", "식비");
+        categoryMap.put("술 · 유흥", "식비");
+        categoryMap.put("쇼핑", "여가");
+        categoryMap.put("미용", "여가");
+        categoryMap.put("문화 · 여행", "여가");
 
-        Map<String, String> CATEGORY_MAP = new HashMap<>();
-        CATEGORY_MAP.put("식비 · 카페", "식비");
-        CATEGORY_MAP.put("술 · 유흥", "식비");
-        CATEGORY_MAP.put("쇼핑", "여가");
-        CATEGORY_MAP.put("미용", "여가");
-        CATEGORY_MAP.put("문화 · 여행", "여가");
-
-        String cardCategory = CATEGORY_MAP.getOrDefault(categoryByUser, categoryByUser);
-        return cardCategory;
+        return categoryMap.getOrDefault(categoryByUser, categoryByUser);
     }
 
     public List<Card> getCardsByUser(Long userNo) {
-        return Optional.of(cardMapper.selectCardsByUser(userNo))
-                .orElseThrow(NoSuchElementException::new);
+        List<Card> cards = cardMapper.selectCardsByUser(userNo);
+        return cards == null ? Collections.emptyList() : cards;
     }
-
 }
