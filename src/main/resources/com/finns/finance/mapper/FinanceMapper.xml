@@ -5,28 +5,39 @@
 
 <mapper namespace="com.finns.finance.mapper.FinanceMapper">
 
+    <sql id="financeProductColumns">
+        fp.finance_product_no, fp.kor_co_nm, fc.img_url, fp.finance_product_type,
+        fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
+        fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
+        fp.mtrt_int
+    </sql>
+
+    <sql id="cardProductColumns">
+        c.card_no, c.card_name, c.corp_name, c.img_url,
+        c.ex_l_mth, c.ex_in_for, c.detail_link,
+        GROUP_CONCAT(DISTINCT ct.type ORDER BY ct.type SEPARATOR ',') AS card_categories,
+        GROUP_CONCAT(DISTINCT cb.benefit ORDER BY cb.benefit SEPARATOR ' | ') AS benefit,
+        GROUP_CONCAT(DISTINCT cb.benefit_detail ORDER BY cb.benefit_detail SEPARATOR ' | ') AS benefit_detail
+    </sql>
+
     <!-- 예금 상품 리스트 조회 -->
     <select id="getDepositProducts" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fp.finance_product_type,
-               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
-               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
-               fp.mtrt_int
+        SELECT <include refid="financeProductColumns"/>
         FROM finance_product fp
         JOIN finance_company fc
           ON fp.kor_co_nm = fc.kor_co_nm
-        WHERE fp.finance_product_type = '01';
+        WHERE fp.finance_product_type = '01'
+        ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
     </select>
 
     <!-- 적금 상품 리스트 조회 -->
     <select id="getinstallProducts" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fp.finance_product_type,
-               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
-               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
-               fp.mtrt_int
+        SELECT <include refid="financeProductColumns"/>
         FROM finance_product fp
-                 JOIN finance_company fc
-                      ON fp.kor_co_nm = fc.kor_co_nm
-        WHERE fp.finance_product_type = '02';
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_type = '02'
+        ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
     </select>
 
     <!-- 특정 금융 상품 조회 -->
@@ -36,27 +47,37 @@
                fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
                fp.mtrt_int
         FROM finance_product fp
-                 JOIN finance_company fc
-                      ON fp.kor_co_nm = fc.kor_co_nm
-        WHERE finance_product_no = #{financeProductNo}
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_no = #{financeProductNo}
     </select>
 
     <!-- 예금(01)에서 intr_rate2(최고금리)가 가장 높은 항목 -->
     <select id="selectHighestIntrRateForDeposit" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT *
-        FROM finance_product
-        WHERE finance_product_type = '01'
-        ORDER BY intr_rate2 DESC
-            LIMIT 1
+        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fc.company_url, fp.finance_product_type,
+               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
+               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
+               fp.mtrt_int
+        FROM finance_product fp
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_type = '01'
+        ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
+        LIMIT 1
     </select>
 
     <!-- 적금(02)에서 (최고금리)가 가장 높은 항목 -->
     <select id="selectHighestIntrRateForSavings" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT *
-        FROM finance_product
-        WHERE finance_product_type = '02'
-        ORDER BY intr_rate2 DESC
-            LIMIT 1
+        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fc.company_url, fp.finance_product_type,
+               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
+               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
+               fp.mtrt_int
+        FROM finance_product fp
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_type = '02'
+        ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
+        LIMIT 1
     </select>
 
     <select id="selectTopDepositProductByUsers" resultType="com.finns.finance.dto.FinanceCount">
@@ -68,12 +89,14 @@
                 LEFT JOIN
             product_by_user u ON p.finance_product_no = u.finance_product_no
         WHERE
-            p.finance_product_type = '01'  -- 예금
+            p.finance_product_type = '01'
         GROUP BY
             p.finance_product_no
+        HAVING
+            productCount > 0
         ORDER BY
             productCount DESC
-            LIMIT 1
+        LIMIT 1
     </select>
 
     <select id="selectTopSavingsProductByUsers" resultType="com.finns.finance.dto.FinanceCount">
@@ -85,42 +108,36 @@
                 LEFT JOIN
             product_by_user u ON p.finance_product_no = u.finance_product_no
         WHERE
-            p.finance_product_type = '02'  -- 적금
+            p.finance_product_type = '02'
         GROUP BY
             p.finance_product_no
+        HAVING
+            productCount > 0
         ORDER BY
             productCount DESC
-            LIMIT 1
+        LIMIT 1
     </select>
+
     <!-- 카드 상품 리스트 조회 -->
     <select id="getCardProducts" resultType="com.finns.finance.dto.CardDTO">
-        SELECT c.card_no, c.card_name, c.corp_name, c.img_url,
-               c.ex_l_mth, c.ex_in_for, c.detail_link,
-               GROUP_CONCAT(ct.type) AS card_categories,
-               cb.benefit,
-               cb.benefit_detail
+        SELECT <include refid="cardProductColumns"/>
         FROM card c
-                LEFT JOIN card_type ct
-                            ON c.card_no = ct.card_no
-                LEFT JOIN card_benefit cb
-                            ON c.card_no = cb.card_no
+        LEFT JOIN card_type ct
+          ON c.card_no = ct.card_no
+        LEFT JOIN card_benefit cb
+          ON c.card_no = cb.card_no
         GROUP BY c.card_no
+        ORDER BY c.card_no ASC
     </select>
 
     <!-- 특정 카드 상품 조회 -->
     <select id="selectOneCard" resultType="com.finns.finance.dto.CardDTO">
-        SELECT
-        c.card_no, c.card_name, c.corp_name,
-        c.img_url, c.ex_l_mth, c.ex_in_for,
-        c.detail_link,
-        GROUP_CONCAT(ct.type) AS card_categories,
-        cb.benefit,
-        cb.benefit_detail
+        SELECT <include refid="cardProductColumns"/>
         FROM card c
         LEFT JOIN card_type ct ON c.card_no = ct.card_no
         LEFT JOIN card_benefit cb ON c.card_no = cb.card_no
         WHERE c.card_no = #{card_no}
-        GROUP BY c.card_no;
+        GROUP BY c.card_no
     </select>
 
     <select id="selectProductsByUser" resultType="com.finns.finance.dto.FinanceDTO">
@@ -133,6 +150,7 @@
                 JOIN
             finance_company fc ON fp.kor_co_nm = fc.kor_co_nm
         WHERE
-            pbu.user_no = #{userNo};
+            pbu.user_no = #{userNo}
+        ORDER BY fp.finance_product_no ASC
     </select>
 </mapper>
