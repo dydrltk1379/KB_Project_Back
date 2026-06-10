@@ -15,7 +15,7 @@ public class FinanceDTO {
     private String finPrdtNm; // 금융상품명
     private BigDecimal intrRate2; // 최고 금리
     private BigDecimal  intrRate; // 기본 금리
-    private Boolean joinMember; // 가입 대상
+    private String joinMember; // 가입 대상
     private String joinWay; // 가입 방법
     private Integer saveTrm; // 가입 기간(저축 기간)
     private String intrRateTypeNm; // 이자 계산 방식
