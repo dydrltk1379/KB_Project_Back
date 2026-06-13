@@ -21,7 +21,7 @@ public class FollowController {
     private final FollowService followService;
 
     @PostMapping("/follow/{user_no}/{to_user_no}")
-    public ResponseEntity<String> follow(@PathVariable int user_no, @PathVariable int to_user_no) {
+    public ResponseEntity<String> follow(@PathVariable Long user_no, @PathVariable Long to_user_no) {
         FollowDTO followDTO = new FollowDTO(user_no, to_user_no);
         try {
             followService.follow(followDTO);
@@ -32,7 +32,7 @@ public class FollowController {
     }
 
     @DeleteMapping("/unfollow/{user_no}/{to_user_no}")
-    public ResponseEntity<String> unfollow(@PathVariable int user_no, @PathVariable int to_user_no) {
+    public ResponseEntity<String> unfollow(@PathVariable Long user_no, @PathVariable Long to_user_no) {
         FollowDTO followDTO = new FollowDTO(user_no, to_user_no);
         try {
             followService.unfollow(followDTO);
@@ -43,19 +43,19 @@ public class FollowController {
     }
 
     @GetMapping("/users/{user_no}/follower/{auth_no}")
-    public ResponseEntity<List<MemberDTO>> getFollowerList(@PathVariable int user_no, @PathVariable int auth_no) {
+    public ResponseEntity<List<MemberDTO>> getFollowerList(@PathVariable Long user_no, @PathVariable Long auth_no) {
         List<MemberDTO> followerList = followService.getFollowerList(user_no, auth_no);
         return ResponseEntity.ok(followerList);
     }
 
     @GetMapping("/users/{user_no}/following/{auth_no}")
-    public ResponseEntity<List<MemberDTO>> getFollowingList(@PathVariable int user_no, @PathVariable int auth_no) {
+    public ResponseEntity<List<MemberDTO>> getFollowingList(@PathVariable Long user_no, @PathVariable Long auth_no) {
         List<MemberDTO> followingList = followService.getFollowingList(user_no, auth_no);
         return ResponseEntity.ok(followingList);
     }
 
     @GetMapping("/users/{user_no}/followCounts")
-    public ResponseEntity<FollowCountDTO> getFollowCounts(@PathVariable int user_no) {
+    public ResponseEntity<FollowCountDTO> getFollowCounts(@PathVariable Long user_no) {
         FollowCountDTO counts = followService.getFollowCounts(user_no);
         return ResponseEntity.ok(counts);
     }

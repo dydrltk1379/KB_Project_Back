@@ -34,7 +34,7 @@ public class FollowService {
         followMapper.deleteFollow(followDTO);
     }
 
-    public List<MemberDTO> getFollowingList(int user_no, int auth_no) {
+    public List<MemberDTO> getFollowingList(long user_no, long auth_no) {
         List<MemberVO> followingList = followMapper.selectFollowingByUserNo(user_no);
         return followingList.stream()
                 .map(this::convertToDTO)
@@ -42,7 +42,7 @@ public class FollowService {
                 .collect(Collectors.toList());
     }
 
-    public List<MemberDTO> getFollowerList(int user_no, int auth_no) {
+    public List<MemberDTO> getFollowerList(long user_no, long auth_no) {
         List<MemberVO> followerList = followMapper.selectFollowerByUserNo(user_no);
         return followerList.stream()
                 .map(this::convertToDTO)
@@ -66,7 +66,7 @@ public class FollowService {
                 .build();
     }
 
-    public FollowCountDTO getFollowCounts(int user_no) {
+    public FollowCountDTO getFollowCounts(long user_no) {
         int followerCount = followMapper.countFollowers(user_no);
         int followingCount = followMapper.countFollowing(user_no);
         return new FollowCountDTO(followerCount, followingCount);

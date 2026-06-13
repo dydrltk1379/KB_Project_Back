@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FollowDTO {
-    private int user_no;      // 팔로우하는 사용자 번호
-    private int to_user_no;   // 팔로우 당하는 사용자 번호
+    private long user_no;      // 팔로우하는 사용자 번호
+    private long to_user_no;   // 팔로우 당하는 사용자 번호
 }
