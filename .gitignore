@@ -250,6 +250,3 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,intellij,gradle
 
 src/main/resources/application.properties
-
-## Ignore Cline files
-.clineignore

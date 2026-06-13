@@ -17,7 +17,7 @@ public class FinanceDTO {
     private BigDecimal  intrRate; // 기본 금리
     private String joinMember; // 가입 대상
     private String joinWay; // 가입 방법
-    private Integer saveTrm; // 가입 기간(저축 기간)
+    private String saveTrm; // 가입 기간(저축 기간)
     private String intrRateTypeNm; // 이자 계산 방식
     private String spclCnd; // 우대조건
     private String mtrtInt; // 만기후 이자율 // 은행 로고 이미지 힝크

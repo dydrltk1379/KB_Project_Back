@@ -1,5 +1,6 @@
 package com.finns.finance.controller;
 
+import com.finns.card.pagination.PageResponse;
 import com.finns.common.util.SecurityUtils;
 import com.finns.finance.dto.CardDTO;
 import com.finns.finance.dto.FinanceCount;
@@ -26,12 +27,15 @@ public class FinanceController {
     private final FinanceService financeService;
 
     @GetMapping("/{financeProductType}")
-    public ResponseEntity<List<FinanceDTO>> getProductList(@PathVariable("financeProductType") String financeProductType) {
+    public ResponseEntity<PageResponse<FinanceDTO>> getProductList(
+            @PathVariable("financeProductType") String financeProductType,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         if ("01".equals(financeProductType)) {
-            return ResponseEntity.ok(financeService.getDepositList());
+            return ResponseEntity.ok(financeService.getDepositList(page, size));
         }
         if ("02".equals(financeProductType)) {
-            return ResponseEntity.ok(financeService.getSavingsList());
+            return ResponseEntity.ok(financeService.getSavingsList(page, size));
         }
         return ResponseEntity.badRequest().build();
     }
@@ -62,8 +66,10 @@ public class FinanceController {
     }
 
     @GetMapping("/card")
-    public ResponseEntity<List<CardDTO>> getCardList() {
-        return ResponseEntity.ok(financeService.getCardList());
+    public ResponseEntity<PageResponse<CardDTO>> getCardList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(financeService.getCardList(page, size));
     }
 
     @GetMapping("/card/{cardNo}")

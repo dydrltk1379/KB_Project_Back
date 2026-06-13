@@ -22,22 +22,48 @@
 
     <!-- 예금 상품 리스트 조회 -->
     <select id="getDepositProducts" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT <include refid="financeProductColumns"/>
+        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fc.company_url, fp.finance_product_type,
+               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
+               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
+               fp.mtrt_int
         FROM finance_product fp
         JOIN finance_company fc
           ON fp.kor_co_nm = fc.kor_co_nm
         WHERE fp.finance_product_type = '01'
         ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- 적금 상품 리스트 조회 -->
     <select id="getinstallProducts" resultType="com.finns.finance.dto.FinanceDTO">
-        SELECT <include refid="financeProductColumns"/>
+        SELECT fp.finance_product_no, fp.kor_co_nm, fc.img_url, fc.company_url, fp.finance_product_type,
+               fp.fin_prdt_nm, fp.intr_rate2, fp.intr_rate, fp.join_member,
+               fp.join_way, fp.save_trm, fp.intr_rate_type_nm, fp.spcl_cnd,
+               fp.mtrt_int
         FROM finance_product fp
         JOIN finance_company fc
           ON fp.kor_co_nm = fc.kor_co_nm
         WHERE fp.finance_product_type = '02'
         ORDER BY fp.intr_rate2 DESC, fp.finance_product_no ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 예금 상품 개수 조회 -->
+    <select id="countDepositProducts" resultType="long">
+        SELECT COUNT(*)
+        FROM finance_product fp
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_type = '01'
+    </select>
+
+    <!-- 적금 상품 개수 조회 -->
+    <select id="countInstallProducts" resultType="long">
+        SELECT COUNT(*)
+        FROM finance_product fp
+        JOIN finance_company fc
+          ON fp.kor_co_nm = fc.kor_co_nm
+        WHERE fp.finance_product_type = '02'
     </select>
 
     <!-- 특정 금융 상품 조회 -->
@@ -128,6 +154,12 @@
           ON c.card_no = cb.card_no
         GROUP BY c.card_no
         ORDER BY c.card_no ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 카드 상품 개수 조회 -->
+    <select id="countCardProducts" resultType="long">
+        SELECT COUNT(*) FROM card
     </select>
 
     <!-- 특정 카드 상품 조회 -->

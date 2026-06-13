@@ -1,5 +1,6 @@
 package com.finns.finance.service;
 
+import com.finns.card.pagination.PageResponse;
 import com.finns.common.exception.ResourceNotFoundException;
 import com.finns.finance.dto.CardDTO;
 import com.finns.finance.dto.FinanceCount;
@@ -20,14 +21,36 @@ import java.util.List;
 @PropertySource({"classpath:/application.properties"})
 @Transactional(readOnly = true)
 public class FinanceService {
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final FinanceMapper financeMapper;
 
-    public List<FinanceDTO> getDepositList() {
-        return financeMapper.getDepositProducts();
+    public PageResponse<FinanceDTO> getDepositList(int page, int size) {
+        if (page < 1) {
+            throw new IllegalArgumentException("page는 1 이상이어야 합니다.");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("size는 1 이상 " + MAX_PAGE_SIZE + " 이하여야 합니다.");
+        }
+        int offset = (page - 1) * size;
+        List<FinanceDTO> products = financeMapper.getDepositProducts(offset, size);
+        long totalElements = financeMapper.countDepositProducts();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        return new PageResponse<>(products, totalPages, totalElements, size, page);
     }
 
-    public List<FinanceDTO> getSavingsList() {
-        return financeMapper.getinstallProducts();
+    public PageResponse<FinanceDTO> getSavingsList(int page, int size) {
+        if (page < 1) {
+            throw new IllegalArgumentException("page는 1 이상이어야 합니다.");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("size는 1 이상 " + MAX_PAGE_SIZE + " 이하여야 합니다.");
+        }
+        int offset = (page - 1) * size;
+        List<FinanceDTO> products = financeMapper.getinstallProducts(offset, size);
+        long totalElements = financeMapper.countInstallProducts();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        return new PageResponse<>(products, totalPages, totalElements, size, page);
     }
 
     public FinanceDTO getProductByNo(Long financeProductNo) {
@@ -70,8 +93,18 @@ public class FinanceService {
         return topProduct;
     }
 
-    public List<CardDTO> getCardList() {
-        return financeMapper.getCardProducts();
+    public PageResponse<CardDTO> getCardList(int page, int size) {
+        if (page < 1) {
+            throw new IllegalArgumentException("page는 1 이상이어야 합니다.");
+        }
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("size는 1 이상 " + MAX_PAGE_SIZE + " 이하여야 합니다.");
+        }
+        int offset = (page - 1) * size;
+        List<CardDTO> cards = financeMapper.getCardProducts(offset, size);
+        long totalElements = financeMapper.countCardProducts();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        return new PageResponse<>(cards, totalPages, totalElements, size, page);
     }
 
     public CardDTO getCardByNo(Long cardNo) {
